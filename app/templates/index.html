@@ -31,6 +31,70 @@
 
     <!-- Template Stylesheet -->
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <style>
+        #chat-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4caf50;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+#chat-popup {
+    display: none;
+    position: fixed;
+    bottom: 10px;
+    right: 20px;
+    height: 350px;
+    max-width: 300px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#chat-header {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+#chat-messages {
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: scroll;
+    background-color: #f9f9f9;
+}
+
+#user-input {
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#send-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#close{
+    color: red;
+    padding: 0%;
+    cursor: pointer;
+    margin-left: 10px;
+}
+    </style>
 </head>
 
 <body>
@@ -84,16 +148,27 @@
                     <input class="form-control bg-dark border-0" type="search" placeholder="Search">
                 </form>
                 <div class="navbar-nav align-items-center ms-auto">
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="{% static 'image/user.png' %}" alt="" style="width: 40px; height: 40px;">
-                            <span class="d-none d-lg-inline-flex">Guest</span>
+                    <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
+                        <a href="../../../" class="navbar-brand d-flex d-lg-none me-4">
+                            <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                         </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="/search" class="dropdown-item">Predict</a>
-                            <a href="/ticker" class="dropdown-item">Ticker Info</a>
+                        
+                        <div class="navbar-nav align-items-center ms-auto">
+                            {% if user.is_authenticated %}
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                    <img class="rounded-circle me-lg-2" src="{% static 'image/user.png' %}" alt="" style="width: 40px; height: 40px;">
+                                    <span class="d-none d-lg-inline-flex">{{ user.username }}</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
+                                    <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <a href="{% url 'login' %}" class="nav-link"><i class="fa fa-sign-in-alt me-2"></i>Login</a>
+                            {% endif %}
                         </div>
-                    </div>
+                    </nav>
                 </div>
             </nav>
             <!-- Navbar End -->
@@ -164,16 +239,33 @@
             </div>
             <!-- Recent Sales End -->
 
+            <!-- Chatbot Section Start -->
+            
+            <!-- Chat Icon -->
+            <div id="chat-icon" onclick="toggleChatPopup()">Chat</div>
+
+             <!-- Chat Popup -->
+            <!-- <div id="chat-popup">
+                <div id="chat-header">
+                    Stock Market Chatbot
+                    <i id="close" class="bi bi-x" style="font-size: 25px;"></i>
+                </div>
+                <div id="chat-messages"></div>
+                <p id="botFirstMsg" class="botText"><span>Loading....</span></p>
+                <input type="text" id="user-input" placeholder="Type your message...">
+                <button id="send-button" onclick="sendMessage()">Send</button>
+            </div> -->
+            <!-- Chatbot Section End -->
 
             <!-- Footer Start -->
             <div class="container-fluid pt-4 px-4">
                 <div class="bg-secondary rounded-top p-4">
                     <div class="row">
                         <div class="col-12 col-sm-6 text-center text-sm-start">
-                            &copy; <a href="#">Kumar Laxmikant</a>, All Right Reserved. 
+                            &copy; <a href="#">Yash,Rohan and Sarvesh</a>, All Right Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            Designed By <a href="https://portfolio-website-azure-eta.vercel.app/">Kumar Laxmikant</a>
+                            Designed By <a href="https://portfolio1-vkkd.onrender.com/">Yash,Rohan and Sarvesh</a>
                         </div>
                     </div>
                 </div>
@@ -184,7 +276,7 @@
 
 
         <!-- Back to Top -->
-        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+        <!-- <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>-->
     </div>
 
     <!-- JavaScript Libraries -->
@@ -200,6 +292,76 @@
 
     <!-- Template Javascript -->
     <script src="{% static 'js/main.js' %}"></script>
+    <script>
+        function toggleChatPopup() {
+            var chatPopup = document.getElementById('chat-popup');
+            chatPopup.style.display = (chatPopup.style.display === 'block') ? 'none' : 'block';
+            displayMessage("Stocker","Hello!, I am Stocker. How can I help you?")
+        }
+
+        function firstBotMessage(){
+            let firstMessage = "Hello, I am Stocker. How can I help you?";
+            document.getElementById("botFirstMsg").innerHTML = '<p class="botText"><span>'+firstMessage+'</span></p>'
+        }
+        firstBotMessage();
+
+        function sendMessage() {
+            var userInput = document.getElementById('user-input').value;
+            displayMessage('User', userInput);
+
+            // Get chatbot response
+            getChatbotResponse(userInput);
+            document.getElementById('user-input').value = '';
+        }
+
+        function displayMessage(sender, message) {
+            var chatMessages = document.getElementById('chat-messages');
+            var messageElement = document.createElement('div');
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            chatMessages.appendChild(messageElement);
+
+            // Scroll to the bottom of the chat messages
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function getChatbotResponse(userInput) {
+            try {
+                // Make an API request to your stock market analyzer backend
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userInput }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch chatbot response');
+                }
+
+                const responseData = await response.json();
+                displayMessage('Chatbot', responseData.message);
+            } catch (error) {
+                console.error('Error getting chatbot response:', error);
+                displayMessage('Chatbot', 'Sorry, something went wrong. Please try again.');
+            }
+        }
+        function toggleChatPopup() {
+    var chatPopup = document.getElementById('chat-popup');
+    var chatIcon = document.getElementById('chat-icon');
+    chatPopup.style.display = (chatPopup.style.display === 'block' || chatPopup.style.display === '') ? 'none' : 'block';
+    
+}
+
+    function closeChatPopup() {
+        toggleChatPopup(false);
+    }
+
+    // Rest of your functions...
+
+    // Add a close button click event
+    document.getElementById('close').addEventListener('click', closeChatPopup);
+    </script>
 </body>
 
 </html>

@@ -11,6 +11,7 @@ from plotly.graph_objs import Scatter
 import pandas as pd
 import numpy as np
 import json
+import requests
 
 import yfinance as yf
 import datetime as dt
@@ -21,6 +22,7 @@ from .models import Project
 from sklearn.linear_model import LinearRegression
 from sklearn import preprocessing, model_selection, svm
 
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -99,7 +101,7 @@ def index(request):
     recent_stocks = json.loads(json_records)
 
     # ========================================== Page Render section =====================================================
-
+    
     return render(request, 'index.html', {
         'plot_div_left': plot_div_left,
         'recent_stocks': recent_stocks
@@ -119,7 +121,12 @@ def ticker(request):
     return render(request, 'ticker.html', {
         'ticker_list': ticker_list
     })
-
+def get_stock_news(stock_symbol, api_key):
+    url = f"https://newsapi.org/v2/everything?q={stock_symbol}&apiKey={api_key}"
+    response = requests.get(url)
+    data = response.json()
+    articles = data["articles"]
+    return articles
 
 # The Predict Function to implement Machine Learning as well as Plotting
 def predict(request, ticker_value, number_of_days):
@@ -191,7 +198,7 @@ def predict(request, ticker_value, number_of_days):
     forecast_out = int(number_of_days)
     df_ml['Prediction'] = df_ml[['Adj Close']].shift(-forecast_out)
     # Splitting data for Test and Train
-    X = np.array(df_ml.drop(['Prediction'],1))
+    X = np.array(df_ml.drop(['Prediction'],axis=1))
     X = preprocessing.scale(X)
     X_forecast = X[-forecast_out:]
     X = X[:-forecast_out]
@@ -221,8 +228,13 @@ def predict(request, ticker_value, number_of_days):
     pred_fig.update_xaxes(rangeslider_visible=True)
     pred_fig.update_layout(paper_bgcolor="#14151b", plot_bgcolor="#14151b", font_color="white")
     plot_div_pred = plot(pred_fig, auto_open=False, output_type='div')
-
-    # ========================================== Display Ticker Info ==========================================
+    # Fetch market news
+    try:
+        api_key = 'd43ffff410d54fab92c43b00aab97b06'  # Replace 'YOUR_API_KEY' with your actual News API key
+        articles = get_stock_news(ticker_value, api_key)
+    except Exception as e:
+        print(f"Error fetching news: {e}")
+        articles = []
 
     ticker = pd.read_csv('app/Data/Tickers.csv')
     to_search = ticker_value
@@ -243,9 +255,6 @@ def predict(request, ticker_value, number_of_days):
             Industry = ticker.Industry[i]
             break
 
-    # ========================================== Page Render section ==========================================
-    
-
     return render(request, "result.html", context={ 'plot_div': plot_div, 
                                                     'confidence' : confidence,
                                                     'forecast': forecast,
@@ -263,4 +272,5 @@ def predict(request, ticker_value, number_of_days):
                                                     'Volume':Volume,
                                                     'Sector':Sector,
                                                     'Industry':Industry,
-                                                    })
+                                                    'market_news': articles
+                                                    }) 

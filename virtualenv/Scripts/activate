@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\Parth\Desktop\VS Studio\Stock-Prediction-System-Application\virtualenv"
+VIRTUAL_ENV="C:\Users\yasha\Stock-Prediction-System-Application\virtualenv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
