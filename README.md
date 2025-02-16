@@ -1,7 +1,3 @@
-Below is a further enhanced and descriptive version of your README, incorporating additional details, relevant information, and carefully selected emojis to visually complement the content.
-
----
-
 # Stock Market Prediction & Sentiment Analysis System 📈🤖
 
 ![Stock Market Prediction Banner](./app/static/image/banner.png)
