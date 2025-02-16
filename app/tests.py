@@ -364,5 +364,41 @@ class ProjectQuerySetTests(ProjectModelTestBase):
         # self.assertEqual(active_projects.first().name, 'Active Project')
 
 class ProjectSignalTests(ProjectModelTestBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_status = self.status
+        self._original_budget = self.budget
+
+    def save(self, *args, **kwargs):
+        # Status change detection
+        status_changed = self.status != self._original_status
+        budget_changed = self.budget != self._original_budget
+        
+        if status_changed:
+            project_pre_status_change.send(
+                sender=self.__class__,
+                instance=self,
+                old_status=self._original_status,
+                new_status=self.status
+            )
+
+        super().save(*args, **kwargs)
+
+        if status_changed:
+            project_post_status_change.send(
+                sender=self.__class__,
+                instance=self,
+                old_status=self._original_status,
+                new_status=self.status
+            )
+            self._original_status = self.status
+
+        if budget_changed and self.budget and self.budget > 1000000:
+            project_over_budget.send(
+                sender=self.__class__,
+                instance=self,
+                budget_threshold=1000000
+            )
+            self._original_budget = self.budget
     # Add tests for any custom signals or post-save actions here
     pass
