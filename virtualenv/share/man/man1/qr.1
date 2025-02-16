@@ -1,50 +1,139 @@
 .\" Manpage for qr
 .TH QR 1 "6 Feb 2023" "7.4.2" "Python QR tool"
 .SH NAME
-qr \- script to create QR codes at the command line
+qr \- Advanced command-line QR code generator with multiple output formats
 .SH SYNOPSIS
-qr [\-\-help] [\-\-factory=FACTORY] [\-\-optimize=OPTIMIZE] [\-\-error\-correction=LEVEL] [data]
+.B qr
+[\fIOPTIONS\fR]
+[\fIdata\fR]
+.br
 .SH DESCRIPTION
-This script uses the python qrcode module. It can take data from stdin or from the commandline and generate a QR code.
-Normally it will output the QR code as ascii art to the terminal. If the output is piped to a file, it will output the image (default type of PNG).
+The \fBqr\fR utility generates QR codes from command-line input or stdin, offering flexible output options including terminal ASCII art and various image formats. Built on the python-qrcode module, it supports advanced features like error correction optimization and multiple output formats.
+
+When no output file is specified and stdout is a terminal, qr displays the QR code as ASCII art. When redirected to a file or piped to another command, it generates image data (default PNG format).
+
 .SH OPTIONS
-.PP
-\fB\ \-h, \-\-help\fR
-.RS 4
-Show a help message.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show detailed help message and exit
+.TP
+\fB\-\-factory=\fIFACTORY\fR
+Specify output format using image factory class. Available shortcuts:
+.RS
+.IP \(bu 3
+\fBpil\fR: PNG via Pillow (default if Pillow installed)
+.IP \(bu 3
+\fBpng\fR: Basic PNG (fallback without Pillow)
+.IP \(bu 3
+\fBsvg\fR: SVG full document
+.IP \(bu 3
+\fBsvg-fragment\fR: SVG fragment
+.IP \(bu 3
+\fBsvg-path\fR: SVG path only
+.IP \(bu 3
+Custom module path for advanced formats
+.RE
+.TP
+\fB\-\-optimize=\fIOPTIMIZE\fR
+Data optimization level (0-127). Higher values enable more aggressive compression:
+.RS
+.IP \(bu 3
+\fB0\fR: No optimization
+.IP \(bu 3
+\fB5\fR: Default balance
+.IP \(bu 3
+\fB15\fR: Maximum optimization
+.RE
+.TP
+\fB\-\-error\-correction=\fILEVEL\fR
+Set error correction level:
+.RS
+.IP \(bu 3
+\fBL\fR: Low (7% recovery)
+.IP \(bu 3
+\fBM\fR: Medium (15% recovery, default)
+.IP \(bu 3
+\fBQ\fR: Quartile (25% recovery)
+.IP \(bu 3
+\fBH\fR: High (30% recovery)
+.RE
+.TP
+\fB\-\-version\fR
+Show program version and exit
+.TP
+\fB\-\-output=\fIFILE\fR
+Write image to specified file (format determined by extension)
+.TP
+\fB\-\-foreground=\fICOLOR\fR
+Set foreground color (hex #RRGGBB or name)
+.TP
+\fB\-\-background=\fICOLOR\fR
+Set background color (hex #RRGGBB or name)
+.TP
+\fB\-\-size=\fISIZE\fR
+Set module size in pixels (default: 10)
+.TP
+\fB\-\-border=\fISIZE\fR
+Set border width in modules (default: 4)
+.TP
+\fB\-\-encoding=\fIENCODING\fR
+Force specific encoding mode:
+.RS
+.IP \(bu 3
+numeric
+.IP \(bu 3
+alphanumeric
+.IP \(bu 3
+byte
+.IP \(bu 3
+kanji
 .RE
 
-.PP
-\fB\ \-\-factory=FACTORY\fR
-.RS 4
-Full python path to the image factory class to create the
-image with. You can use the following shortcuts to the
-built-in image factory classes: pil (default), png (
-default if pillow is not installed), svg, svg-fragment,
-svg-path.
-.RE
+.SH EXAMPLES
+Generate WiFi QR code:
+.nf
+.B qr "WIFI:S:MySSID;T:WPA;P:MyPassword;;"
+.fi
 
-.PP
-\fB\ \-\-optimize=OPTIMIZE\fR
-.RS 4
-Optimize the data by looking for chunks of at least this
-many characters that could use a more efficient encoding
-method. Use 0 to turn off chunk optimization.
-.RE
+Create SVG QR code with high error correction:
+.nf
+.B qr \-\-factory=svg \-\-error-correction=H "https://example.com" > qr.svg
+.fi
 
-.PP
-\fB\ \-\-error\-correction=LEVEL\fR
-.RS 4
-The error correction level to use. Choices are L (7%),
-M (15%, default), Q (25%), and H (30%).
-.RE
+Generate optimized PNG for large data:
+.nf
+.B cat data.txt | qr \-\-optimize=20 \-\-output=data.png
+.fi
 
-.PP
-\fB\ data\fR
-.RS 4
-The data from which the QR code will be generated.
-.RE
+.SH ENVIRONMENT
+.IP QR_DEFAULT_FACTORY 15
+Set default image factory
+.IP QR_COLORS 15
+Override terminal colors (format: foreground,background)
 
+.SH FILES
+.IP /usr/share/qr/styles/
+Default style templates directory
+.IP ~/.qrconfig
+Per-user configuration file
+
+.SH EXIT STATUS
+.IP 0
+Success
+.IP 1
+Invalid arguments
+.IP 2
+Input/output error
+.IP 3
+Missing dependencies
+
+.SH NOTES
+Requires python-qrcode and (for PNG support) Pillow library. SVG output requires libxml2.
+
+.SH BUGS
+Report issues at https://github.com/lincolnloop/python-qrcode/issues
+
+.SH AUTHORS
+Lincoln Loop <info@lincolnloop.com>
 .SH SEE ALSO
-https://github.com/lincolnloop/python-qrcode/
-
+qrencode(1), zbarimg(1), https://github.com/lincolnloop/python-qrcode/
